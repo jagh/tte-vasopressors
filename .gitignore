@@ -1,0 +1,2 @@
+# Create .gitignore
+echo ".ipynb_checkpoints/`n__pycache__/`n*.pyc`n.DS_Store" > .gitignore
