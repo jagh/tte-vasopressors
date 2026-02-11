@@ -41,118 +41,199 @@
 
 
 -- ============================================================================
--- PART 1: DEFINE INCLUSION CRITERIA (TRAUMA DIAGNOSES)
+-- STEP 1: DEFINE INCLUSION CRITERIA (TRAUMA DIAGNOSES)
 -- ============================================================================
 
 WITH trauma_inclusion_icd10 AS (
   SELECT icd_code_prefix
   FROM UNNEST([
-    -- HEAD INJURIES (excluding TBI codes S06-S08)
+    -- Head injuries (excluding TBI - S06, S07, S08)
     'S00', 'S01', 'S02', 'S03', 'S04', 'S05', 'S09',
-    
-    -- NECK INJURIES (excluding cervical spine S12, S14)
+    -- Neck injuries (excluding cervical spine - S12, S14)
     'S10', 'S11', 'S13', 'S15', 'S16', 'S17', 'S19',
-    
-    -- THORAX INJURIES (excluding thoracic spine S22, S24)
+    -- Thorax injuries (excluding thoracic spine - S22, S24)
     'S20', 'S21', 'S23', 'S25', 'S26', 'S27', 'S28', 'S29',
-    
-    -- ABDOMEN/PELVIS INJURIES (excluding lumbar/sacral spine S32, S34)
+    -- Abdomen/pelvis injuries (excluding lumbar/sacral spine - S32, S34)
     'S30', 'S31', 'S33', 'S35', 'S36', 'S37', 'S38', 'S39',
-    
-    -- SHOULDER AND UPPER ARM (S40-S49)
+    -- Shoulder and upper arm
     'S40', 'S41', 'S42', 'S43', 'S45', 'S46', 'S47', 'S48', 'S49',
-    
-    -- ELBOW AND FOREARM (S50-S59)
+    -- Elbow and forearm
     'S50', 'S51', 'S52', 'S53', 'S55', 'S56', 'S57', 'S58', 'S59',
-    
-    -- WRIST AND HAND (S60-S69)
+    -- Wrist and hand
     'S60', 'S61', 'S62', 'S63', 'S65', 'S66', 'S67', 'S68', 'S69',
-    
-    -- HIP AND THIGH (S70-S79) - includes femur fractures (S72)
+    -- Hip and thigh (INCLUDING S72 - femur fractures)
     'S70', 'S71', 'S72', 'S73', 'S75', 'S76', 'S77', 'S78', 'S79',
-    
-    -- KNEE AND LOWER LEG (S80-S89) - includes tibia/fibula fractures (S82)
+    -- Knee and lower leg (INCLUDING S82 - tibia/fibula fractures)
     'S80', 'S81', 'S82', 'S83', 'S85', 'S86', 'S87', 'S88', 'S89',
-    
-    -- ANKLE AND FOOT (S90-S99)
+    -- Ankle and foot
     'S90', 'S91', 'S92', 'S93', 'S95', 'S96', 'S97', 'S98', 'S99',
-    
-    -- MULTIPLE/UNSPECIFIED BODY REGION INJURIES (T00-T07)
-    'T00', 'T01', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07',
-    
-    -- INJURY OF UNSPECIFIED BODY REGION
-    'T14'
+    -- Multiple/unspecified injuries
+    'T00', 'T01', 'T02', 'T03', 'T04', 'T05', 'T06', 'T07', 
+    -- Other injuries
+    'T14',  -- Injury of unspecified body region
+    -- TRAUMATIC BRAIN INJURY (TBI)
+    'S06', 'S07',  'S08',
+     -- ==========================================================================
+    -- SPINAL CORD INJURIES
+    -- ==========================================================================
+    'S12',  -- Fracture of cervical vertebra
+    'S14',  -- Injury of nerves/spinal cord at neck level
+    'S22',  -- Fracture of thoracic vertebra
+    'S24',  -- Injury of nerves/spinal cord at thorax level
+    'S32',  -- Fracture of lumbar spine/pelvis
+    -- ==========================================================================
+    -- POISONING & TOXIC EFFECTS
+    -- ==========================================================================
+    'T36', 'T37', 'T38', 'T39', 'T40', 'T41', 'T42', 'T43', 'T44',
+    'T45', 'T46', 'T47', 'T48', 'T49', 'T50', 'T51', 'T52', 'T53',
+    'T54', 'T55', 'T56', 'T57', 'T58', 'T59', 'T60', 'T61', 'T62',
+    'T63', 'T64', 'T65',
+    -- ==========================================================================
+    -- ALLERGIC/ANAPHYLACTIC REACTIONS
+    -- ==========================================================================
+    'T78',  -- Adverse effects NEC (includes anaphylaxis)
+    'T80',  -- Complications following infusion/transfusion
+    'T88',  -- Other complications (includes anaphylaxis)
+     -- ==========================================================================
+    -- BITES (HUMAN & ANIMAL)
+    -- ==========================================================================
+    'W53', 'W54', 'W55', 'W56', 'W57', 'W58', 'W59',  -- ICD-10 bite codes
+    'X20', 'X21', 'X22', 'X23', 'X24', 'X25', 'X26', 'X27',  -- Venomous animals
+    -- ==========================================================================
+    -- IATROGENIC INJURIES
+    -- ==========================================================================
+    'T81', 'T82', 'T83', 'T84', 'T85', 'T86', 'T87'  -- ICD-10 complications
   ]) AS icd_code_prefix
 ),
 
 trauma_inclusion_icd9 AS (
   SELECT icd_code_prefix
   FROM UNNEST([
-    -- FRACTURES (800-829), excluding 806 (spinal with cord injury)
+    -- Fractures (800-829) - excluding 806 (spinal with cord injury)
     '800', '801', '802', '803', '804', '805', '807', '808', '809',
     '810', '811', '812', '813', '814', '815', '816', '817', '818', '819',
     '820', '821', '822', '823', '824', '825', '826', '827', '828', '829',
-    
-    -- DISLOCATIONS (830-839)
+    -- Dislocations (830-839)
     '830', '831', '832', '833', '834', '835', '836', '837', '838', '839',
-    
-    -- SPRAINS AND STRAINS (840-848)
+    -- Sprains and strains (840-848)
     '840', '841', '842', '843', '844', '845', '846', '847', '848',
-    
-    -- INTERNAL INJURIES (860-869)
+    -- Internal injuries (860-869)
     '860', '861', '862', '863', '864', '865', '866', '867', '868', '869',
-    
-    -- OPEN WOUNDS (870-897)
+    -- Open wounds (870-897)
     '870', '871', '872', '873', '874', '875', '876', '877', '878', '879',
     '880', '881', '882', '883', '884', '885', '886', '887', '888', '889',
     '890', '891', '892', '893', '894', '895', '896', '897',
-    
-    -- INJURY TO BLOOD VESSELS (900-904)
+    -- Injury to blood vessels (900-904)
     '900', '901', '902', '903', '904',
+    -- Traumatic complications and injuries (958-959)
+    '958', '959',
+    -- TRAUMATIC BRAIN INJURY (TBI)
+    '850', '851', '852','853', '854',
+    -- ==========================================================================
+    -- SPINAL CORD INJURIES
+    -- ==========================================================================
+    '806',  -- Fracture of vertebral column with spinal cord injury (ICD-9)
+    '952',  -- Spinal cord injury without fracture (ICD-9)
     
-    -- TRAUMATIC COMPLICATIONS AND INJURIES (958-959)
-    '958', '959'
+    -- ==========================================================================
+    -- POISONING & TOXIC EFFECTS
+    -- ==========================================================================
+    '96',   -- Poisoning codes (ICD-9 960-969)
+    '97',   -- Poisoning codes (ICD-9 970-979)
+    '98',   -- Poisoning codes (ICD-9 980-989)
+    
+    -- ==========================================================================
+    -- ALLERGIC/ANAPHYLACTIC REACTIONS
+    -- ==========================================================================
+    '9953', -- Anaphylactic shock (ICD-9)
+    '9954', -- Anaphylactic reaction (ICD-9)
+    
+    -- ==========================================================================
+    -- BITES (HUMAN & ANIMAL)
+    -- ==========================================================================
+    'E905', -- Venomous animals/plants (ICD-9)
+    'E906', -- Other injury by animals (ICD-9)
+    
+    -- ==========================================================================
+    -- IATROGENIC INJURIES
+    -- ==========================================================================
+    '996', '997', '998', '999',  -- Complications of medical care (ICD-9)
+    'E870', 'E871', 'E872', 'E873', 'E874', 'E875', 'E876'  -- Misadventures (ICD-9)
   ]) AS icd_code_prefix
 ),
 
 
 -- ============================================================================
--- PART 2: DEFINE EXCLUSION CRITERIA
+-- STEP 2: DEFINE EXCLUSION CRITERIA
 -- ============================================================================
 
 trauma_exclusion AS (
   SELECT icd_code_prefix
   FROM UNNEST([
-    -- SPINAL CORD INJURIES (neurogenic shock has different management)
-    'S12', 'S14', 'S22', 'S24', 'S32', 'S34',
-    '806', '952',
+    -- ==========================================================================
+    -- TRAUMATIC BRAIN INJURY (TBI)
+    -- ==========================================================================
+    #'S06',  -- Intracranial injury
+    #'S07',  -- Crushing injury of head
+    #'S08',  -- Traumatic amputation of head
+    #'850',  -- Concussion (ICD-9)
+    #'851',  -- Cerebral laceration/contusion (ICD-9)
+    #'852',  -- Subarachnoid/subdural/extradural hemorrhage (ICD-9)
+    #'853',  -- Other intracranial hemorrhage (ICD-9)
+    #'854',  -- Intracranial injury, unspecified (ICD-9)
     
-    -- POISONING & TOXIC EFFECTS (non-traumatic)
+    -- ==========================================================================
+    -- SPINAL CORD INJURIES
+    -- ==========================================================================
+    'S12',  -- Fracture of cervical vertebra
+    'S14',  -- Injury of nerves/spinal cord at neck level
+    'S22',  -- Fracture of thoracic vertebra
+    'S24',  -- Injury of nerves/spinal cord at thorax level
+    'S32',  -- Fracture of lumbar spine/pelvis
+    'S34',  -- Injury of nerves/spinal cord at abdomen/pelvis level
+    '806',  -- Fracture of vertebral column with spinal cord injury (ICD-9)
+    '952',  -- Spinal cord injury without fracture (ICD-9)
+    
+    -- ==========================================================================
+    -- POISONING & TOXIC EFFECTS
+    -- ==========================================================================
     'T36', 'T37', 'T38', 'T39', 'T40', 'T41', 'T42', 'T43', 'T44',
     'T45', 'T46', 'T47', 'T48', 'T49', 'T50', 'T51', 'T52', 'T53',
     'T54', 'T55', 'T56', 'T57', 'T58', 'T59', 'T60', 'T61', 'T62',
     'T63', 'T64', 'T65',
-    '96', '97', '98',
+    '96',   -- Poisoning codes (ICD-9 960-969)
+    '97',   -- Poisoning codes (ICD-9 970-979)
+    '98',   -- Poisoning codes (ICD-9 980-989)
     
-    -- ALLERGIC/ANAPHYLACTIC REACTIONS (distributive shock)
-    'T78', 'T80', 'T88',
-    '9953', '9954',
+    -- ==========================================================================
+    -- ALLERGIC/ANAPHYLACTIC REACTIONS
+    -- ==========================================================================
+    'T78',  -- Adverse effects NEC (includes anaphylaxis)
+    'T80',  -- Complications following infusion/transfusion
+    'T88',  -- Other complications (includes anaphylaxis)
+    '9953', -- Anaphylactic shock (ICD-9)
+    '9954', -- Anaphylactic reaction (ICD-9)
     
-    -- BITES (infection/envenomation)
-    'W53', 'W54', 'W55', 'W56', 'W57', 'W58', 'W59',
-    'X20', 'X21', 'X22', 'X23', 'X24', 'X25', 'X26', 'X27',
-    'E905', 'E906',
+    -- ==========================================================================
+    -- BITES (HUMAN & ANIMAL)
+    -- ==========================================================================
+    'W53', 'W54', 'W55', 'W56', 'W57', 'W58', 'W59',  -- ICD-10 bite codes
+    'X20', 'X21', 'X22', 'X23', 'X24', 'X25', 'X26', 'X27',  -- Venomous animals
+    'E905', -- Venomous animals/plants (ICD-9)
+    'E906', -- Other injury by animals (ICD-9)
     
-    -- IATROGENIC INJURIES (hospital-acquired)
-    'T81', 'T82', 'T83', 'T84', 'T85', 'T86', 'T87',
-    '996', '997', '998', '999',
-    'E870', 'E871', 'E872', 'E873', 'E874', 'E875', 'E876'
+    -- ==========================================================================
+    -- IATROGENIC INJURIES
+    -- ==========================================================================
+    'T81', 'T82', 'T83', 'T84', 'T85', 'T86', 'T87',  -- ICD-10 complications
+    '996', '997', '998', '999',  -- Complications of medical care (ICD-9)
+    'E870', 'E871', 'E872', 'E873', 'E874', 'E875', 'E876'  -- Misadventures (ICD-9)
   ]) AS icd_code_prefix
 ),
 
 
 -- ============================================================================
--- PART 3: IDENTIFY TRAUMA PATIENTS
+-- STEP 3: IDENTIFY TRAUMA PATIENTS
 -- ============================================================================
 
 trauma_patients AS (
@@ -164,34 +245,29 @@ trauma_patients AS (
     d.icd_title,
     d.seq_num
   FROM `physionet-data.mimiciv_ed.diagnosis` d
-  WHERE 
+  WHERE (
     -- ICD-10 inclusion
-    (
-      d.icd_version = 10 
-      AND EXISTS (
-        SELECT 1 FROM trauma_inclusion_icd10 ti
-        WHERE d.icd_code LIKE CONCAT(ti.icd_code_prefix, '%')
-      )
-    )
+    (d.icd_version = 10 AND EXISTS (
+      SELECT 1 FROM trauma_inclusion_icd10 ti
+      WHERE d.icd_code LIKE CONCAT(ti.icd_code_prefix, '%')
+    ))
     OR
     -- ICD-9 inclusion
-    (
-      d.icd_version = 9 
-      AND EXISTS (
-        SELECT 1 FROM trauma_inclusion_icd9 ti
-        WHERE d.icd_code LIKE CONCAT(ti.icd_code_prefix, '%')
-      )
-    )
-  -- Exclude specific conditions
-  AND NOT EXISTS (
-    SELECT 1 FROM trauma_exclusion te
-    WHERE d.icd_code LIKE CONCAT(te.icd_code_prefix, '%')
+    (d.icd_version = 9 AND EXISTS (
+      SELECT 1 FROM trauma_inclusion_icd9 ti
+      WHERE d.icd_code LIKE CONCAT(ti.icd_code_prefix, '%')
+    ))
   )
+  -- Apply exclusions
+  #AND NOT EXISTS (
+  #SELECT 1 FROM trauma_exclusion te
+  #  WHERE d.icd_code LIKE CONCAT(te.icd_code_prefix, '%')
+  #)
 ),
 
 
 -- ============================================================================
--- PART 4: IDENTIFY HYPOTENSIVE PATIENTS (SBP < 90 mmHg)
+-- STEP 4: IDENTIFY HYPOTENSIVE PATIENTS (SBP < 90 mmHg)
 -- ============================================================================
 
 hypotensive_patients AS (
@@ -226,7 +302,7 @@ hypotensive_patients AS (
 
 
 -- ============================================================================
--- PART 5: IDENTIFY VASOPRESSOR USE
+-- STEP 5: IDENTIFY VASOPRESSOR USE
 -- ============================================================================
 
 vasopressor_use AS (
@@ -237,14 +313,16 @@ vasopressor_use AS (
     p.charttime AS admin_time
   FROM `physionet-data.mimiciv_ed.pyxis` p
   WHERE 
-    LOWER(p.name) LIKE '%norepinephrine%'
-    OR LOWER(p.name) LIKE '%levophed%'
-    OR LOWER(p.name) LIKE '%epinephrine%'
-    OR LOWER(p.name) LIKE '%adrenaline%'
+    -- Search for vasopressor medications (case-insensitive)
+    LOWER(p.name) LIKE '%norepinephrine%' -- could '%levophed%'
+    OR LOWER(p.name) LIKE '%epinephrine%'  -- '%adrenaline%'
     OR LOWER(p.name) LIKE '%dopamine%'
-    OR LOWER(p.name) LIKE '%phenylephrine%'
-    OR LOWER(p.name) LIKE '%neosynephrine%'
+    OR LOWER(p.name) LIKE '%phenylephrine%' -- '%neosynephrine%'
     OR LOWER(p.name) LIKE '%vasopressin%'
+    OR LOWER(p.name) LIKE '%levophed%'
+    -- OR LOWER(p.name) LIKE '%dobutamine%'
+    OR LOWER(p.name) LIKE '%adrenaline%'
+    OR LOWER(p.name) LIKE '%neosynephrine%'
 ),
 
 vasopressor_summary AS (
@@ -262,7 +340,7 @@ vasopressor_summary AS (
 
 
 -- ============================================================================
--- PART 6: BUILD FINAL COHORT
+-- STEP 6: BUILD FINAL COHORT
 -- ============================================================================
 
 final_cohort AS (
@@ -280,6 +358,7 @@ final_cohort AS (
     ed.race,
     ed.arrival_transport,
     ed.disposition,
+    ad.hospital_expire_flag,
     
     -- TRAUMA DIAGNOSIS
     tp.icd_code AS trauma_icd_code,
@@ -300,8 +379,8 @@ final_cohort AS (
     vs.total_vasopressor_doses,
     
     -- Time from ED arrival to first vasopressor (minutes)
-    CASE 
-      WHEN vs.first_vasopressor_time IS NOT NULL 
+    CASE
+      WHEN vs.first_vasopressor_time IS NOT NULL
       THEN DATETIME_DIFF(vs.first_vasopressor_time, ed.intime, MINUTE)
       ELSE NULL
     END AS minutes_to_first_vasopressor
@@ -317,18 +396,22 @@ final_cohort AS (
   INNER JOIN hypotensive_patients hp
     ON ed.subject_id = hp.subject_id
     AND ed.stay_id = hp.stay_id
+ 
+  -- Admission data
+  LEFT JOIN `physionet-data.mimiciv_3_1_hosp.admissions` ad
+    ON ed.subject_id = ad.subject_id AND ed.hadm_id = ad.hadm_id
   
   -- Vasopressor data (optional)
   LEFT JOIN vasopressor_summary vs
     ON ed.subject_id = vs.subject_id
     AND ed.stay_id = vs.stay_id
 )
-
-
+ 
+ 
 -- ============================================================================
 -- MAIN OUTPUT: COHORT SUMMARY STATISTICS
 -- ============================================================================
-
+ 
 SELECT
   -- COHORT SIZE
   COUNT(DISTINCT stay_id) AS total_ed_stays,
@@ -358,6 +441,8 @@ SELECT
   SUM(CASE WHEN disposition = 'ADMITTED' THEN 1 ELSE 0 END) AS admitted_count,
   SUM(CASE WHEN disposition = 'DISCHARGED' THEN 1 ELSE 0 END) AS discharged_count,
   SUM(CASE WHEN disposition = 'TRANSFER' THEN 1 ELSE 0 END) AS transfer_count,
-  SUM(CASE WHEN disposition = 'EXPIRED' THEN 1 ELSE 0 END) AS expired_in_ed_count
-
+  SUM(CASE WHEN disposition = 'EXPIRED' THEN 1 ELSE 0 END) AS expired_in_ed_count,
+ 
+  SUM(hospital_expire_flag) AS expired_in_hosp_count
+ 
 FROM final_cohort;
