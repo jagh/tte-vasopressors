@@ -73,35 +73,25 @@ WITH trauma_inclusion_icd10 AS (
     'T14',  -- Injury of unspecified body region
     -- TRAUMATIC BRAIN INJURY (TBI)
     'S06', 'S07',  'S08',
-     -- ==========================================================================
     -- SPINAL CORD INJURIES
-    -- ==========================================================================
     'S12',  -- Fracture of cervical vertebra
     'S14',  -- Injury of nerves/spinal cord at neck level
     'S22',  -- Fracture of thoracic vertebra
     'S24',  -- Injury of nerves/spinal cord at thorax level
     'S32',  -- Fracture of lumbar spine/pelvis
-    -- ==========================================================================
     -- POISONING & TOXIC EFFECTS
-    -- ==========================================================================
     'T36', 'T37', 'T38', 'T39', 'T40', 'T41', 'T42', 'T43', 'T44',
     'T45', 'T46', 'T47', 'T48', 'T49', 'T50', 'T51', 'T52', 'T53',
     'T54', 'T55', 'T56', 'T57', 'T58', 'T59', 'T60', 'T61', 'T62',
     'T63', 'T64', 'T65',
-    -- ==========================================================================
     -- ALLERGIC/ANAPHYLACTIC REACTIONS
-    -- ==========================================================================
     'T78',  -- Adverse effects NEC (includes anaphylaxis)
     'T80',  -- Complications following infusion/transfusion
     'T88',  -- Other complications (includes anaphylaxis)
-     -- ==========================================================================
     -- BITES (HUMAN & ANIMAL)
-    -- ==========================================================================
     'W53', 'W54', 'W55', 'W56', 'W57', 'W58', 'W59',  -- ICD-10 bite codes
     'X20', 'X21', 'X22', 'X23', 'X24', 'X25', 'X26', 'X27',  -- Venomous animals
-    -- ==========================================================================
     -- IATROGENIC INJURIES
-    -- ==========================================================================
     'T81', 'T82', 'T83', 'T84', 'T85', 'T86', 'T87'  -- ICD-10 complications
   ]) AS icd_code_prefix
 ),
@@ -129,34 +119,20 @@ trauma_inclusion_icd9 AS (
     '958', '959',
     -- TRAUMATIC BRAIN INJURY (TBI)
     '850', '851', '852','853', '854',
-    -- ==========================================================================
     -- SPINAL CORD INJURIES
-    -- ==========================================================================
     '806',  -- Fracture of vertebral column with spinal cord injury (ICD-9)
     '952',  -- Spinal cord injury without fracture (ICD-9)
-    
-    -- ==========================================================================
     -- POISONING & TOXIC EFFECTS
-    -- ==========================================================================
     '96',   -- Poisoning codes (ICD-9 960-969)
     '97',   -- Poisoning codes (ICD-9 970-979)
     '98',   -- Poisoning codes (ICD-9 980-989)
-    
-    -- ==========================================================================
     -- ALLERGIC/ANAPHYLACTIC REACTIONS
-    -- ==========================================================================
     '9953', -- Anaphylactic shock (ICD-9)
     '9954', -- Anaphylactic reaction (ICD-9)
-    
-    -- ==========================================================================
     -- BITES (HUMAN & ANIMAL)
-    -- ==========================================================================
     'E905', -- Venomous animals/plants (ICD-9)
     'E906', -- Other injury by animals (ICD-9)
-    
-    -- ==========================================================================
     -- IATROGENIC INJURIES
-    -- ==========================================================================
     '996', '997', '998', '999',  -- Complications of medical care (ICD-9)
     'E870', 'E871', 'E872', 'E873', 'E874', 'E875', 'E876'  -- Misadventures (ICD-9)
   ]) AS icd_code_prefix
@@ -166,7 +142,6 @@ trauma_inclusion_icd9 AS (
 -- ============================================================================
 -- STEP 2: DEFINE EXCLUSION CRITERIA
 -- ============================================================================
-
 trauma_exclusion AS (
   SELECT icd_code_prefix
   FROM UNNEST([
